@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, MessageSquare, CheckCircle, Clock, LogOut } from "lucide-react"; // Import LogOut
+import { Bell, MessageSquare, CheckCircle, Clock, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAdvisory } from "@/contexts/AdvisoryContext";
 
@@ -21,7 +21,7 @@ interface EscalatedQuestion {
 }
 
 export default function AgriOfficerDashboard() {
-  const { user, logout } = useAuth(); // Get logout function
+  const { user, logout } = useAuth();
   const { setEscalatedQuestion } = useAdvisory();
   const [questions, setQuestions] = useState<EscalatedQuestion[]>([]);
   const [loading, setLoading] = useState(true);

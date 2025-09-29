@@ -14,16 +14,16 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { 
-  Send, 
-  Bot, 
-  User, 
-  Paperclip, 
-  Mic, 
-  X, 
-  LoaderCircle, 
-  Sparkles, 
-  Languages, 
+import {
+  Send,
+  Bot,
+  User,
+  Paperclip,
+  Mic,
+  X,
+  LoaderCircle,
+  Sparkles,
+  Languages,
   Menu,
   AlertTriangle
 } from "lucide-react";
@@ -96,15 +96,15 @@ type ChatHistory = {
 };
 
 // ---------- HELPER FUNCTIONS ----------
-const fileToBase64 = (file: File): Promise<string> => 
-  new Promise((resolve, reject) => { 
-    const reader = new FileReader(); 
-    reader.readAsDataURL(file); 
-    reader.onload = () => resolve((reader.result as string).split(",")[1]); 
-    reader.onerror = reject; 
+const fileToBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve((reader.result as string).split(",")[1]);
+    reader.onerror = reject;
   });
 
-const mdToHtml = (md: string): string => 
+const mdToHtml = (md: string): string =>
   md.replace(/^## (.*$)/gim, "<h2 class='font-bold text-lg mt-4 mb-2 text-foreground'>$1</h2>")
     .replace(/\*\*(.+?)\*\*/g, "<strong class='font-semibold text-foreground'>$1</strong>")
     .replace(/^[\*\-] (.*$)/gim, "<li class='ml-4 my-1 list-disc'>$1</li>")
@@ -115,7 +115,7 @@ const getSafeTranslation = (translations: any, path: string, fallback: any = '')
   try {
     const keys = path.split('.');
     let result = translations;
-    
+
     for (const key of keys) {
       if (result && typeof result === 'object' && key in result) {
         result = result[key];
@@ -123,7 +123,7 @@ const getSafeTranslation = (translations: any, path: string, fallback: any = '')
         return fallback;
       }
     }
-    
+
     return result || fallback;
   } catch (error) {
     console.warn(`Translation missing: ${path}`, error);
@@ -198,7 +198,7 @@ const getMultilingualMessages = (lang: Language) => {
       ]
     }
   };
-  
+
   return messages[lang] || messages.en;
 };
 
@@ -212,7 +212,7 @@ function Speaker({ text, lang }: { text: string; lang: string }) {
       const supported = 'speechSynthesis' in window;
       setIsSupported(supported);
     };
-    
+
     checkSupport();
     return () => {
       if (speechSynthesis) {
@@ -233,16 +233,16 @@ function Speaker({ text, lang }: { text: string; lang: string }) {
     try {
       const cleanText = text.replace(/<[^>]*>/g, "");
       const utterance = new SpeechSynthesisUtterance(cleanText);
-      
+
       const voices = speechSynthesis.getVoices();
-      const voice = voices.find((v) => v.lang.startsWith(lang)) || 
+      const voice = voices.find((v) => v.lang.startsWith(lang)) ||
                       voices.find((v) => v.lang.startsWith(lang.split("-")[0]));
-      
+
       if (voice) utterance.voice = voice;
       utterance.lang = voice?.lang || lang;
       utterance.onend = () => setSpeaking(false);
       utterance.onerror = () => setSpeaking(false);
-      
+
       speechSynthesis.speak(utterance);
       setSpeaking(true);
     } catch (error) {
@@ -254,10 +254,10 @@ function Speaker({ text, lang }: { text: string; lang: string }) {
   if (!isSupported) return null;
 
   return (
-    <Button 
-      variant="ghost" 
-      size="icon" 
-      className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted" 
+    <Button
+      variant="ghost"
+      size="icon"
+      className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted"
       onClick={toggle}
       title="Listen to response"
     >
@@ -298,7 +298,7 @@ function useVoiceRecognition(lang: Language, onTranscript: (transcript: string) 
 
     try {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      
+
       if (!SpeechRecognition) {
         setError("Speech recognition not available.");
         return;
@@ -306,35 +306,35 @@ function useVoiceRecognition(lang: Language, onTranscript: (transcript: string) 
 
       const recognition = new SpeechRecognition();
       recognitionRef.current = recognition;
-      
-      const langCode = lang === 'hi' ? 'hi-IN' : 
+
+      const langCode = lang === 'hi' ? 'hi-IN' :
                        lang === 'mr' ? 'mr-IN' :
                        lang === 'pa' ? 'pa-IN' :
                        lang === 'kn' ? 'kn-IN' :
                        lang === 'ta' ? 'ta-IN' :
                        lang === 'ml' ? 'ml-IN' : 'en-US';
-      
+
       recognition.lang = langCode;
       recognition.interimResults = false;
       recognition.continuous = false;
-      
+
       recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
         if (transcript) {
           onTranscript(transcript.trim());
         }
       };
-      
+
       recognition.onerror = (event: any) => {
         setError(`Voice recognition error: ${event.error}`);
         setIsListening(false);
       };
-      
+
       recognition.onend = () => {
         setIsListening(false);
         recognitionRef.current = null;
       };
-      
+
       recognition.start();
       setIsListening(true);
       setError(null);
@@ -360,7 +360,7 @@ function ChatbotContent() {
   const { latestSoilReport, setEscalatedQuestion } = useAdvisory();
   const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
-  
+
   const [chatHistory, setChatHistory] = useState<ChatHistory>({});
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -389,7 +389,7 @@ function ChatbotContent() {
 
   const handleNewChat = useCallback(() => {
     const multilingualMessages = getMultilingualMessages(currentLang);
-    
+
     const newChatId = Date.now().toString();
     const initialMessage: Message = {
       role: 'bot',
@@ -398,14 +398,14 @@ function ChatbotContent() {
       suggestions: multilingualMessages.suggestions,
       timestamp: Date.now()
     };
-    
+
     const newChat: Chat = {
       id: newChatId,
       title: getSafeTranslation(t, 'chatbotUI.newChat', 'New Chat'),
       timestamp: Date.now(),
       messages: [initialMessage],
     };
-    
+
     setChatHistory(prev => ({ ...prev, [newChatId]: newChat }));
     setActiveChatId(newChatId);
     setMessages([initialMessage]);
@@ -414,11 +414,11 @@ function ChatbotContent() {
 
   useEffect(() => {
     if (!isMounted) return;
-    
+
     try {
       const savedHistory = localStorage.getItem("krishi-mitra-conversations");
       const lastActiveId = localStorage.getItem("krishi-mitra-active-chat-id");
-      
+
       let history: ChatHistory = {};
       if (savedHistory) {
         try {
@@ -430,9 +430,9 @@ function ChatbotContent() {
           console.warn('Failed to parse chat history');
         }
       }
-      
+
       setChatHistory(history);
-      
+
       if (lastActiveId && history[lastActiveId]) {
         setActiveChatId(lastActiveId);
         setMessages(history[lastActiveId].messages);
@@ -447,7 +447,7 @@ function ChatbotContent() {
 
   useEffect(() => {
     if (!isMounted || Object.keys(chatHistory).length === 0) return;
-    
+
     try {
       localStorage.setItem("krishi-mitra-conversations", JSON.stringify(chatHistory));
       if (activeChatId) {
@@ -461,7 +461,7 @@ function ChatbotContent() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
-  
+
   useEffect(() => {
     if (activeChatId && messages.length > 0) {
       setChatHistory(prev => ({
@@ -479,7 +479,8 @@ function ChatbotContent() {
   const sendMessageToGemini = useCallback(async (message: string, image: File | null = null) => {
     if (!GEMINI_API_KEY || !activeChatId) return;
     setIsLoading(true);
-
+  
+    // Check for previously resolved similar questions
     const { data: resolvedAnswer } = await supabase
         .from('escalated_questions')
         .select('answer')
@@ -487,41 +488,46 @@ function ChatbotContent() {
         .eq('status', 'resolved')
         .limit(1)
         .single();
-
+  
     if (resolvedAnswer?.answer) {
         const expertResponse = `An expert has provided an answer for a similar question: "${resolvedAnswer.answer}"`;
         setMessages(p => [...p, { role: "bot", text: expertResponse, html: mdToHtml(expertResponse) }]);
         setIsLoading(false);
         return;
     }
-
+  
     const languageMap: Record<Language, string> = { en: "English", hi: "Hindi", mr: "Marathi", pa: "Punjabi", kn: "Kannada", ta: "Tamil", ml: "Malayalam" };
     const languageName = languageMap[currentLang];
-    const isFirstUserMessage = messages.length === 1 && chatHistory[activeChatId]?.title.includes("New Chat");
-    const titleInstruction = isFirstUserMessage ? "After your response, on a new line, provide a short, 3-5 word title for this conversation prefixed with `Title: `." : "";
     
     let soilDataContext = "";
     if (latestSoilReport) {
-      const reportDate = new Date(latestSoilReport.timestamp).toLocaleDateString();
-      const reportEntries = Object.entries(latestSoilReport)
-        .filter(([key, value]) => key !== 'timestamp' && value !== undefined && value !== null && !isNaN(Number(value)))
-        .map(([key, value]) => `  - ${key.toUpperCase()}: ${value}`)
-        .join("\n");
-
-      soilDataContext = `
----
-IMPORTANT CONTEXT: SOIL HEALTH REPORT
-This is the user's soil health data from a report analyzed on ${reportDate}. You MUST use this information to answer any relevant questions about their soil, crops, or fertilizers. Do not ask for this information again.
-Soil Data:
-${reportEntries}
----
-`;
+        const reportDate = new Date(latestSoilReport.timestamp).toLocaleDateString();
+        const reportEntries = Object.entries(latestSoilReport)
+            .filter(([key, value]) => key !== 'timestamp' && value !== undefined && value !== null && !isNaN(Number(value)))
+            .map(([key, value]) => `  - ${key.toUpperCase()}: ${value}`)
+            .join("\n");
+        soilDataContext = `--- IMPORTANT CONTEXT: SOIL HEALTH REPORT --- This is the user's soil health data from ${reportDate}. You MUST use this to answer relevant questions. Soil Data: ${reportEntries} ---`;
     }
-
-    const STRICT_SYSTEM_PROMPT = `You are Krishi-Mitra, an expert Indian agricultural assistant. You have access to the user's soil health data provided below if available.
-${soilDataContext}
-You MUST reply in ${languageName}, using simple words. Provide short, practical, and low-cost advice.
-${titleInstruction}`;
+  
+    const isFirstUserMessage = messages.length === 1 && chatHistory[activeChatId]?.title.includes("New Chat");
+  
+    const prompt = `
+      You are Krishi-Mitra, an expert Indian agricultural assistant.
+      ${soilDataContext}
+  
+      Analyze the user's question for complexity. A question is "complex" if it involves severe symptoms (e.g., "my entire crop is dying"), high financial loss risk, requires deep local knowledge, or is very vague.
+  
+      You MUST reply ONLY with a single, valid JSON object in the following format. All string values must be in ${languageName}.
+      
+      {
+        "is_complex": <boolean>,
+        "response_text": "<A direct, helpful answer if NOT complex. If complex, inform the user they are being redirected to an expert.>",
+        "question_summary": "<A concise summary of the user's question for the expert form.>",
+        "title": "<A short, 3-5 word title for this conversation. Only include this if this is the first user message in the chat.>"
+      }
+      
+      User's question: "${message}"
+    `;
     
     let userParts: any[] = [{ text: `${message || "Please analyze the image."}` }];
     if (image) {
@@ -535,33 +541,43 @@ ${titleInstruction}`;
             return;
         }
     }
-    
+  
     try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, { 
-            method: "POST", 
-            headers: { "Content-Type": "application/json" }, 
-            body: JSON.stringify({ 
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
                 contents: [
-                    { role: "user", parts: [{ text: STRICT_SYSTEM_PROMPT }] }, 
-                    { role: "model", parts: [{ text: "Ok, I am Krishi-Mitra. I will help." }] }, 
-                    ...messages.map((m) => ({ role: m.role === "bot" ? "model" : "user", parts: [{ text: m.text }] })), 
-                    { role: "user", parts: userParts }, 
-                ], 
-            }), 
+                    ...messages.map((m) => ({ role: m.role === "bot" ? "model" : "user", parts: [{ text: m.text }] })),
+                    { role: "user", parts: userParts },
+                ],
+                systemInstruction: { parts: [{ text: prompt }] }, // Using system instruction for better control
+                generationConfig: {
+                    responseMimeType: "application/json",
+                },
+            }),
         });
-
-        if (!res.ok) throw new Error(`API error: ${res.status}`);
+  
+        if (!res.ok) throw new Error(`API error: ${res.statusText}`);
         
         const data = await res.json();
-        let raw = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
-        const aiResponse = JSON.parse(raw.replace(/```json\n?/, "").replace(/```$/, "").trim());
-        const titleMatch = raw.match(/Title: (.*)/);
-
-        if (titleMatch?.[1] && activeChatId) {
-            const newTitle = titleMatch[1].trim();
-            setChatHistory(prev => ({ ...prev, [activeChatId]: { ...prev[activeChatId], title: newTitle } }));
-        }
+        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
         
+        let aiResponse;
+        try {
+            aiResponse = JSON.parse(rawText);
+        } catch (parseError) {
+            // If JSON parsing fails, treat the response as plain text. This is a robust fallback.
+            console.warn("Could not parse AI response as JSON, treating as plain text:", rawText);
+            setMessages(p => [...p, { role: "bot", text: rawText, html: mdToHtml(rawText) }]);
+            setIsLoading(false);
+            return;
+        }
+  
+        if (aiResponse.title && activeChatId) {
+            setChatHistory(prev => ({ ...prev, [activeChatId]: { ...prev[activeChatId], title: aiResponse.title } }));
+        }
+  
         if (aiResponse.is_complex) {
             setMessages(p => [...p, { role: "bot", text: aiResponse.response_text, html: mdToHtml(aiResponse.response_text) }]);
             setEscalatedQuestion({ title: aiResponse.question_summary, details: message });
@@ -584,7 +600,7 @@ ${titleInstruction}`;
       setIsSheetOpen(false);
       return;
     }
-    
+
     if (chatHistory[id]) {
       setActiveChatId(id);
       setMessages(chatHistory[id].messages);
@@ -607,12 +623,12 @@ ${titleInstruction}`;
         setSpeechError('Please select a valid image file.');
         return;
       }
-      
+
       if (file.size > 10 * 1024 * 1024) { // 10MB limit
         setSpeechError('Image size must be less than 10MB.');
         return;
       }
-      
+
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
       setSpeechError(null);
@@ -636,14 +652,14 @@ ${titleInstruction}`;
 
   const handleSend = useCallback(() => {
     if (!t || (input.trim() === "" && !imageFile)) return;
-    
+
     const userMsg: Message = {
       role: "user",
       text: input.trim(),
       image: imagePreview || undefined,
       timestamp: Date.now()
     };
-    
+
     setMessages(prev => [...prev, userMsg]);
     sendMessageToGemini(input.trim(), imageFile);
     setInput("");
@@ -661,8 +677,8 @@ ${titleInstruction}`;
     );
   }
 
-  const currentChatTitle = activeChatId && chatHistory[activeChatId] 
-    ? chatHistory[activeChatId].title 
+  const currentChatTitle = activeChatId && chatHistory[activeChatId]
+    ? chatHistory[activeChatId].title
     : "Chat Bot";
 
   const placeholderText = getSafeTranslation(t, 'chatbotUI.placeholder', 'Ask a farming question...');
@@ -670,13 +686,13 @@ ${titleInstruction}`;
   return (
     <div className="fixed inset-0 z-50 flex bg-background text-foreground">
       {/* Sidebar for Desktop */}
-      <div className="hidden md:flex md:w-72 lg:w-80"> 
-        <ChatHistorySidebar 
-          chatHistory={Object.values(chatHistory)} 
-          activeChatId={activeChatId} 
-          onNewChat={handleNewChat} 
-          onSelectChat={handleSelectChat} 
-        /> 
+      <div className="hidden md:flex md:w-72 lg:w-80">
+        <ChatHistorySidebar
+          chatHistory={Object.values(chatHistory)}
+          activeChatId={activeChatId}
+          onNewChat={handleNewChat}
+          onSelectChat={handleSelectChat}
+        />
       </div>
 
       <div className="flex flex-1 flex-col overflow-hidden">
@@ -690,11 +706,11 @@ ${titleInstruction}`;
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-80">
-                <ChatHistorySidebar 
-                  chatHistory={Object.values(chatHistory)} 
-                  activeChatId={activeChatId} 
-                  onNewChat={handleNewChat} 
-                  onSelectChat={handleSelectChat} 
+                <ChatHistorySidebar
+                  chatHistory={Object.values(chatHistory)}
+                  activeChatId={activeChatId}
+                  onNewChat={handleNewChat}
+                  onSelectChat={handleSelectChat}
                 />
               </SheetContent>
             </Sheet>
@@ -715,7 +731,7 @@ ${titleInstruction}`;
               <DropdownMenuContent align="end">
                 {["en", "hi", "mr", "pa", "kn", "ta", "ml"].map(lang => (
                   <DropdownMenuItem key={lang} onSelect={() => setCurrentLang(lang as Language)}>
-                    {lang === "en" ? "English" : 
+                    {lang === "en" ? "English" :
                      lang === "hi" ? "हिंदी" :
                      lang === "mr" ? "मराठी" :
                      lang === "pa" ? "ਪੰਜਾਬੀ" :
@@ -733,7 +749,7 @@ ${titleInstruction}`;
           <div className="space-y-6 container mx-auto max-w-4xl">
             {messages.map((message, index) => (
               <div key={index} className={cn(
-                "flex items-start gap-3 w-full", 
+                "flex items-start gap-3 w-full",
                 message.role === "user" ? "justify-end" : "justify-start"
               )}>
                 {message.role === "bot" && (
@@ -743,12 +759,12 @@ ${titleInstruction}`;
                     </AvatarFallback>
                   </Avatar>
                 )}
-                
+
                 <div className="w-full">
                   <div className={cn(
-                    "max-w-[85%] rounded-2xl p-3 text-sm shadow-sm inline-block", 
-                    message.role === "user" 
-                      ? "bg-primary text-primary-foreground rounded-br-none float-right" 
+                    "max-w-[85%] rounded-2xl p-3 text-sm shadow-sm inline-block",
+                    message.role === "user"
+                      ? "bg-primary text-primary-foreground rounded-br-none float-right"
                       : "bg-card border rounded-bl-none text-foreground"
                   )}>
                     {message.image && (
@@ -756,15 +772,15 @@ ${titleInstruction}`;
                     )}
                     <div dangerouslySetInnerHTML={{ __html: message.html || message.text }} />
                   </div>
-                  
+
                   {message.role === "bot" && (
                     <>
                       <div className="flex items-center gap-1 mt-1">
                         <Speaker text={message.text} lang={currentLang} />
                       </div>
                       {message.suggestions?.length ? (
-                        <SuggestionButtons 
-                          suggestions={message.suggestions} 
+                        <SuggestionButtons
+                          suggestions={message.suggestions}
                           onSuggestionClick={(suggestion) => {
                             const userMsg: Message = {
                               role: "user",
@@ -773,13 +789,13 @@ ${titleInstruction}`;
                             };
                             setMessages(prev => [...prev, userMsg]);
                             sendMessageToGemini(suggestion, null);
-                          }} 
+                          }}
                         />
                       ) : null}
                     </>
                   )}
                 </div>
-                
+
                 {message.role === "user" && (
                   <Avatar className="h-8 w-8 flex-shrink-0">
                     <AvatarFallback className="bg-muted text-muted-foreground">
@@ -789,7 +805,7 @@ ${titleInstruction}`;
                 )}
               </div>
             ))}
-            
+
             {isLoading && (
               <div className="flex items-start gap-3 justify-start">
                 <Avatar className="h-8 w-8 bg-primary/20">
@@ -825,7 +841,7 @@ ${titleInstruction}`;
                 </Button>
               </div>
             )}
-            
+
             {speechError && (
               <p className="text-xs text-destructive mb-2 ml-4">{speechError}</p>
             )}
@@ -842,10 +858,10 @@ ${titleInstruction}`;
                 }}
               />
 
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-9 w-9 ml-1 rounded-full flex-shrink-0" 
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 ml-1 rounded-full flex-shrink-0"
                 onClick={() => fileInputRef.current?.click()}
                 title="Attach image"
               >
@@ -867,13 +883,13 @@ ${titleInstruction}`;
                 disabled={isLoading}
               />
 
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 className={cn(
-                  "h-9 w-9 rounded-full flex-shrink-0", 
+                  "h-9 w-9 rounded-full flex-shrink-0",
                   isListening && "bg-red-500 text-white hover:bg-red-600 animate-pulse"
-                )} 
+                )}
                 onClick={handleMicClick}
                 title="Voice input"
                 disabled={isLoading}
@@ -881,11 +897,11 @@ ${titleInstruction}`;
                 <Mic className="h-5 w-5" />
               </Button>
 
-              <Button 
-                type="submit" 
-                size="icon" 
-                className="h-9 w-9 mr-1 rounded-full flex-shrink-0" 
-                onClick={handleSend} 
+              <Button
+                type="submit"
+                size="icon"
+                className="h-9 w-9 mr-1 rounded-full flex-shrink-0"
+                onClick={handleSend}
                 disabled={isLoading || (input.trim() === "" && !imageFile)}
                 title="Send"
               >
